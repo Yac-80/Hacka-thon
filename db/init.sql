@@ -1,0 +1,15 @@
+CREATE TABLE variables (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  plc_ip VARCHAR(45) NOT NULL,
+  register_address INT NOT NULL,
+  frequency_seconds INT NOT NULL
+);
+
+CREATE TABLE measure (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  variable_id INT NOT NULL,
+  value DOUBLE NOT NULL,
+  recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (variable_id) REFERENCES variables(id) ON DELETE CASCADE
+);
