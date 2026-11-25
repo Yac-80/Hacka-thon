@@ -10,6 +10,7 @@ const express = require('express'); // le framework du serveur web
 const cors = require('cors');       // autorise le frontend (autre port) à appeler l'API
 const pool = require('./db');       // la connexion à la base
 const variablesRouter = require('./routes/variables'); // les routes des variables
+const scheduler = require('./scheduler'); // collecte automatique des mesures
 
 // On crée l'application Express.
 const app = express();
@@ -37,4 +38,8 @@ app.use('/api/variables', variablesRouter);
 const PORT = process.env.BACKEND_PORT || 3000;
 
 // On démarre le serveur et on affiche un message dans le terminal.
-app.listen(PORT, () => console.log(`Backend sur http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Backend sur http://localhost:${PORT}`);
+  // Au démarrage, on lance la collecte des variables déjà en base.
+  scheduler.reload().catch((err) => console.error('Erreur au démarrage de la collecte :', err.message));
+});

@@ -7,6 +7,8 @@ const pool = require('../db');
 // Un Router regroupe plusieurs routes liées au même sujet (ici : les variables).
 const router = express.Router();
 
+const scheduler = require('../scheduler'); // pour relancer la collecte après un changement
+
 // ---------- LISTER ----------
 // GET /api/variables -> renvoie toutes les variables enregistrées.
 router.get('/', async (req, res) => {
@@ -42,6 +44,7 @@ router.post('/', async (req, res) => {
       'INSERT INTO variables (name, plc_ip, register_address, frequency_seconds) VALUES (?, ?, ?, ?)',
       [name, plc_ip, register_address, frequency_seconds]
     );
+    await scheduler.reload();
     // 201 = "créé". result.insertId est l'id donné automatiquement par la base.
     res.status(201).json({ id: result.insertId, name, plc_ip, register_address, frequency_seconds });
   } catch (err) {
@@ -65,7 +68,7 @@ router.put('/:id', async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Variable introuvable' }); // 404 = introuvable
     }
-
+    await scheduler.reload();
     res.json({ id: Number(req.params.id), name, plc_ip, register_address, frequency_seconds });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -82,7 +85,7 @@ router.delete('/:id', async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Variable introuvable' });
     }
-
+    await scheduler.reload();
     // 204 = "succès, rien à renvoyer".
     res.status(204).end();
   } catch (err) {
