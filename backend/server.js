@@ -11,6 +11,7 @@ const cors = require('cors');       // autorise le frontend (autre port) à appe
 const pool = require('./db');       // la connexion à la base
 const variablesRouter = require('./routes/variables'); // les routes des variables
 const scheduler = require('./scheduler'); // collecte automatique des mesures
+const measuresRouter = require('./routes/measures'); // lecture des mesures + export CSV
 
 // On crée l'application Express.
 const app = express();
@@ -33,6 +34,9 @@ app.get('/api/health', async (req, res) => {
 // Toutes les routes de routes/variables.js sont préfixées par /api/variables.
 // Ex. : GET /api/variables, POST /api/variables, PUT /api/variables/3...
 app.use('/api/variables', variablesRouter);
+
+// Routes des mesures : /api/variables/:id/measures et /api/export
+app.use('/api', measuresRouter);
 
 // Port d'écoute : lu dans .env s'il existe, sinon 3000.
 const PORT = process.env.BACKEND_PORT || 3000;
