@@ -55,6 +55,31 @@
             <input id="champ-frequence" type="number" min="1" value="5" required>
           </label>
         </div>
+        <div class="deux-colonnes">
+          <label>Type d'objet Modbus
+            <select id="champ-type">
+              <option value="holding">Registre de maintien (%MW)</option>
+              <option value="input">Registre d'entrée (%IW)</option>
+              <option value="coil">Bit / bobine (%M)</option>
+              <option value="discrete">Entrée discrète (%I)</option>
+            </select>
+          </label>
+          <label>Format de la valeur
+            <select id="champ-format">
+              <option value="uint16">Entier 16 bits</option>
+              <option value="int16">Entier signé 16 bits</option>
+              <option value="float32">Réel 32 bits (%MF)</option>
+            </select>
+          </label>
+        </div>
+        <div class="deux-colonnes">
+          <label>Unit ID
+            <input id="champ-unit" type="number" min="0" max="255" value="1" required>
+          </label>
+          <label class="case">
+            <input type="checkbox" id="champ-swap"> Inverser les 2 mots (réel)
+          </label>
+        </div>
 
         <!-- Message d'erreur éventuel (rempli par app.js) -->
         <p class="erreur" id="formulaire-erreur" role="alert"></p>

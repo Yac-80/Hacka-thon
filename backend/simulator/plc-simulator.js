@@ -15,6 +15,9 @@ const vector = {
   getInputRegister: (addr) => {
     return Math.round(50 + 20 * Math.sin(Date.now() / 10000 + addr));
   },
+  // Bits : un bit qui bascule environ toutes les 30 secondes (pour tester les bobines)
+  getCoil: (addr) => Math.sin(Date.now() / 10000 + addr) > 0,
+  getDiscreteInput: (addr) => Math.sin(Date.now() / 10000 + addr) > 0,
 };
 
 // On démarre le serveur Modbus TCP.

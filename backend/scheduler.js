@@ -1,7 +1,7 @@
 // node-cron permet de lancer une fonction à intervalles réguliers.
 const cron = require('node-cron');
 const pool = require('./db');                    // connexion à la base
-const { readRegister } = require('./modbus');    // lecture d'un automate
+const { readVariable } = require('./modbus');    // lecture d'un automate (toute la variable)
 
 // Liste des tâches en cours : une tâche par variable.
 // La clé est l'id de la variable, la valeur est la tâche cron.
@@ -20,8 +20,9 @@ function toCron(seconds) {
 // Lit la valeur d'UNE variable sur l'automate et l'enregistre en base.
 async function collect(variable) {
   try {
-    // 1. On lit le registre sur l'automate.
-    const value = await readRegister(variable.plc_ip, variable.register_address);
+    // 1. On lit la variable sur l'automate (adresse, type d'objet, format, unit id...
+    //    sont tous dans l'objet "variable", venant de la base).
+    const value = await readVariable(variable);
     // 2. On enregistre la valeur (la date est ajoutée automatiquement par la base).
     await pool.query('INSERT INTO measure (variable_id, value) VALUES (?, ?)', [
       variable.id,

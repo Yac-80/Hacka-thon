@@ -20,6 +20,14 @@ const API_URL = `http://${window.location.hostname || 'localhost'}:3000/api`;
 // Nombre de points affichés sur le graphique (les 60 dernières mesures).
 const NB_POINTS = 60;
 
+// Noms lisibles des types d'objets Modbus (affichés sous le nom de la variable).
+const NOMS_TYPES = {
+  holding: 'registre de maintien',
+  input: 'registre d\'entrée',
+  coil: 'bit (bobine)',
+  discrete: 'entrée discrète',
+};
+
 
 // ---------------------------------------------------------------------
 // 2. MÉMOIRE : ce que la page a besoin de retenir
@@ -46,6 +54,19 @@ function creer(balise, classe, texte) {
   if (classe) element.className = classe;
   if (texte !== undefined) element.textContent = texte;
   return element;
+}
+
+// Vrai si la variable est un bit (0 ou 1) : bobine ou entrée discrète.
+// Pour un bit, on affiche ON / OFF et une courbe en escalier.
+function estBit(v) {
+  return Boolean(v) && (v.register_type === 'coil' || v.register_type === 'discrete');
+}
+
+// Décrit une variable en une phrase (utilisé dans la liste et sous le titre).
+// Exemple : "127.0.0.1, registre de maintien 0, toutes les 5 s"
+function decrire(v) {
+  const type = NOMS_TYPES[v.register_type] || NOMS_TYPES.holding;
+  return `${v.plc_ip}, ${type} ${v.register_address}, toutes les ${v.frequency_seconds} s`;
 }
 
 // Appelle l'API et renvoie sa réponse en JSON.
@@ -120,8 +141,7 @@ function afficherListe() {
     choix.type = 'button';
     choix.append(
       creer('span', 'ligne-nom', v.name),
-      creer('span', 'ligne-detail',
-        `${v.plc_ip}, registre ${v.register_address}, toutes les ${v.frequency_seconds} s`)
+      creer('span', 'ligne-detail', decrire(v))
     );
     choix.addEventListener('click', () => choisirVariable(v));
 
@@ -159,9 +179,16 @@ function choisirVariable(v) {
   }
 
   $('releve-nom').textContent = v.name;
-  $('releve-detail').textContent =
-    `Automate ${v.plc_ip}, registre ${v.register_address}, une mesure toutes les ${v.frequency_seconds} s`;
+  $('releve-detail').textContent = decrire(v);
   $('releve-valeur').textContent = '-';
+
+  // Pour un bit : courbe en escalier (ça saute de 0 à 1) et axe un peu élargi.
+  // Pour une valeur normale : courbe lissée et axe automatique.
+  if (graphique) {
+    graphique.data.datasets[0].stepped = estBit(v);
+    graphique.options.scales.y.suggestedMin = estBit(v) ? -0.1 : undefined;
+    graphique.options.scales.y.suggestedMax = estBit(v) ? 1.1 : undefined;
+  }
 
   rafraichirGraphique(); // on affiche tout de suite les données...
   relancerMinuteur();    // ...puis on les rafraîchit régulièrement
@@ -195,6 +222,7 @@ function creerGraphique() {
         pointHoverRadius: 4,
         tension: 0.25,        // légère courbure
         fill: true,
+        stepped: false,       // passe à true pour les bits (voir choisirVariable)
       }],
     },
     options: {
@@ -222,8 +250,13 @@ function viderGraphique() {
 async function rafraichirGraphique() {
   if (!variableChoisie || !graphique) return;
 
+  // On retient quelle variable on interroge : si l'utilisateur en choisit une autre
+  // pendant l'attente de la réponse, on ignorera cette réponse devenue périmée.
+  const variableInterrogee = variableChoisie;
+
   try {
-    const mesures = await appelApi(`/variables/${variableChoisie.id}/measures?limit=${NB_POINTS}`);
+    const mesures = await appelApi(`/variables/${variableInterrogee.id}/measures?limit=${NB_POINTS}`);
+    if (variableInterrogee !== variableChoisie) return;
 
     // On sépare les heures (axe X) et les valeurs (axe Y).
     const heures = mesures.map((m) => new Date(m.recorded_at).toLocaleTimeString('fr-FR'));
@@ -235,7 +268,9 @@ async function rafraichirGraphique() {
 
     if (mesures.length > 0) {
       // La grosse valeur = la mesure la plus récente.
-      $('releve-valeur').textContent = valeurs[valeurs.length - 1];
+      // Pour un bit : ON si la valeur est 1, OFF si elle est 0.
+      const derniere = valeurs[valeurs.length - 1];
+      $('releve-valeur').textContent = estBit(variableInterrogee) ? (derniere ? 'ON' : 'OFF') : derniere;
       $('releve-heure').textContent = `Dernière mesure à ${heures[heures.length - 1]}`;
     } else {
       $('releve-valeur').textContent = '-';
@@ -267,6 +302,13 @@ function ouvrirFormulaire(variable) {
   $('champ-ip').value = variable ? variable.plc_ip : '';
   $('champ-registre').value = variable ? variable.register_address : '';
   $('champ-frequence').value = variable ? variable.frequency_seconds : 5;
+
+  // Les 4 réglages avancés (valeurs par défaut pour une nouvelle variable).
+  $('champ-type').value = variable ? variable.register_type : 'holding';
+  $('champ-format').value = variable ? variable.data_type : 'uint16';
+  $('champ-unit').value = variable ? variable.unit_id : 1;
+  $('champ-swap').checked = variable ? Boolean(variable.swap_words) : false;
+
   $('formulaire-titre').textContent = variable ? 'Modifier la variable' : 'Nouvelle variable';
   $('formulaire-erreur').textContent = '';
   $('formulaire').hidden = false;
@@ -298,6 +340,11 @@ $('formulaire').addEventListener('submit', async (evenement) => {
     plc_ip: $('champ-ip').value,
     register_address: Number($('champ-registre').value),
     frequency_seconds: Number($('champ-frequence').value),
+    // Réglages avancés :
+    unit_id: Number($('champ-unit').value),
+    register_type: $('champ-type').value,
+    data_type: $('champ-format').value,
+    swap_words: $('champ-swap').checked,
   };
 
   try {
