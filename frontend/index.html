@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supervision process - UniLaSalle Amiens</title>
+
+  <!-- Polices : Bricolage Grotesque (titres et gros chiffres) et IBM Plex Sans (texte).
+       Si le PC n'a pas internet, le navigateur utilisera sa police par défaut : rien ne casse. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Notre feuille de style (les couleurs et la mise en page) -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ============ BANDEAU DU HAUT ============ -->
+  <header class="bandeau">
+    <div class="marque">
+      <span class="marque-titre">Supervision process</span>
+      <span class="marque-ecole">UniLaSalle Amiens</span>
+    </div>
+    <!-- Indique si le backend répond (rempli par app.js) -->
+    <div class="statut" id="statut" role="status">Connexion au backend...</div>
+  </header>
+
+  <main class="page">
+
+    <!-- ============ COLONNE DE GAUCHE : LES VARIABLES ============ -->
+    <aside class="feuille" aria-labelledby="titre-variables">
+      <div class="feuille-entete">
+        <h2 id="titre-variables">Variables surveillées</h2>
+        <button type="button" class="bouton bouton-signal" id="btn-nouvelle">Ajouter</button>
+      </div>
+
+      <!-- Formulaire d'ajout / de modification : caché tant qu'on ne clique pas sur "Ajouter" ou "Modifier" -->
+      <form id="formulaire" class="formulaire" hidden>
+        <h3 id="formulaire-titre">Nouvelle variable</h3>
+
+        <!-- Champ caché : contient l'id quand on modifie, reste vide quand on ajoute -->
+        <input type="hidden" id="champ-id">
+
+        <label>Nom
+          <input id="champ-nom" required placeholder="Température four">
+        </label>
+        <label>Adresse IP de l'automate
+          <input id="champ-ip" required placeholder="127.0.0.1">
+        </label>
+        <div class="deux-colonnes">
+          <label>Registre à lire
+            <input id="champ-registre" type="number" min="0" required placeholder="100">
+          </label>
+          <label>Fréquence (secondes)
+            <input id="champ-frequence" type="number" min="1" value="5" required>
+          </label>
+        </div>
+
+        <!-- Message d'erreur éventuel (rempli par app.js) -->
+        <p class="erreur" id="formulaire-erreur" role="alert"></p>
+
+        <div class="actions">
+          <button type="submit" class="bouton bouton-principal">Enregistrer</button>
+          <button type="button" class="bouton" id="btn-annuler">Annuler</button>
+        </div>
+      </form>
+
+      <!-- La liste des variables est construite par app.js -->
+      <ul class="liste" id="liste"></ul>
+      <p class="vide" id="liste-vide" hidden></p>
+    </aside>
+
+    <!-- ============ COLONNE DE DROITE : LE RELEVÉ ET L'EXPORT ============ -->
+    <section class="paillasse" aria-labelledby="releve-nom">
+
+      <!-- En-tête du relevé : nom de la variable + grosse valeur actuelle -->
+      <div class="releve">
+        <div>
+          <h2 id="releve-nom">Aucune variable sélectionnée</h2>
+          <p class="detail" id="releve-detail"></p>
+        </div>
+        <p class="valeur" id="releve-valeur" aria-live="polite">-</p>
+      </div>
+
+      <!-- Le graphique Chart.js sera dessiné dans ce canvas -->
+      <div class="graphique">
+        <canvas id="graphique" aria-label="Évolution de la variable dans le temps"></canvas>
+      </div>
+      <p class="detail" id="releve-heure"></p>
+
+      <!-- Export CSV -->
+      <form class="export" id="export-form">
+        <h3>Exporter l'historique en CSV</h3>
+        <div class="export-champs">
+          <label>Variable
+            <select id="export-variable"></select>
+          </label>
+          <label>Du
+            <input type="date" id="export-debut" required>
+          </label>
+          <label>Au
+            <input type="date" id="export-fin" required>
+          </label>
+          <button type="submit" class="bouton bouton-principal">Télécharger</button>
+        </div>
+        <p class="erreur" id="export-erreur" role="alert"></p>
+      </form>
+    </section>
+  </main>
+
+  <!-- Chart.js : la bibliothèque qui dessine le graphique (chargée depuis internet) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Notre code : doit être chargé EN DERNIER -->
+  <script src="js/app.js"></script>
+</body>
+</html>
