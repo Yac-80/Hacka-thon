@@ -12,6 +12,8 @@ const pool = mysql.createPool({
   // Port de MariaDB (celui qu'on a ouvert dans docker-compose.yml).
   port: 3306,
 
+  timezone: 'Z',   // la base est en UTC : on le dit à Node pour que les heures soient justes
+
   // Identifiants lus dans le fichier .env (jamais écrits en dur dans le code).
   user: process.env.MARIADB_USER,
   password: process.env.MARIADB_PASSWORD,

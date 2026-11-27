@@ -1,7 +1,8 @@
 /* =====================================================================
    STYLE DE LA PAGE DE SUPERVISION
-   Idée : un cahier de laboratoire. Fond en papier millimétré, encre
-   marine, et un trait jaune "sécurité" comme on en voit en atelier.
+   Idée : un cahier de laboratoire. Fond uni, encre marine, et un trait
+   jaune "sécurité" comme on en voit en atelier. Le papier millimétré
+   n'est gardé que derrière le graphique.
    Pour changer les couleurs de l'école, modifie seulement les
    variables juste en dessous (--encre, --bleu, --signal).
    ===================================================================== */
@@ -10,14 +11,15 @@
   /* --- Couleurs --- */
   --encre: #14275a;          /* bleu marine : textes, bandeau, bordures */
   --encre-douce: #4a5b86;    /* bleu-gris : textes secondaires */
-  --papier: #f4f7fc;         /* fond de la page */
-  --quadrillage: #d6dfef;    /* lignes du papier millimétré */
+  --papier: #e8eef9;         /* fond uni de la page */
+  --quadrillage: #d6dfef;    /* lignes du papier millimétré (graphique) */
   --feuille: #ffffff;        /* fond des cadres */
   --bleu: #2457c5;           /* courbe du graphique */
   --signal: #f5b800;         /* jaune sécurité : repères importants */
   --signal-pale: #fff6d6;    /* jaune très clair : ligne sélectionnée */
-  --ok: #1f8a5b;            /* vert : backend connecté */
-  --alerte: #b3261e;         /* rouge : erreurs */
+  --ok: #1f8a5b;            /* vert : tout va bien */
+  --alerte: #b3261e;         /* rouge : erreurs, automate muet */
+  --neutre: #8a97bb;         /* gris : en attente */
 
   /* --- Polices (avec une police de secours si pas d'internet) --- */
   --police-titre: 'Bricolage Grotesque', system-ui, sans-serif;
@@ -30,18 +32,13 @@
 /* Un élément avec l'attribut "hidden" doit vraiment disparaître */
 [hidden] { display: none !important; }
 
-/* ---------- Page entière : papier millimétré en fond ---------- */
+/* ---------- Page entière : fond uni ---------- */
 body {
   margin: 0;
   min-height: 100vh;
   font-family: var(--police-texte);
   color: var(--encre);
   background-color: var(--papier);
-  /* Deux dégradés (horizontal + vertical) forment le quadrillage de 24 px */
-  background-image:
-    linear-gradient(var(--quadrillage) 1px, transparent 1px),
-    linear-gradient(90deg, var(--quadrillage) 1px, transparent 1px);
-  background-size: 24px 24px;
 }
 
 h2, h3 {
@@ -86,7 +83,7 @@ h2, h3 {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #8a97bb; /* gris : état inconnu */
+  background: var(--neutre); /* gris : état inconnu */
 }
 
 .statut.ok::before { background: #4ade9a; }      /* vert : ça répond */
@@ -131,6 +128,51 @@ h2, h3 {
 
 .feuille-entete h2 { font-size: 1.15rem; }
 
+/* ---------- Onglets Automate réel / Simulation ---------- */
+.onglets {
+  display: flex;
+  border-bottom: 2px solid var(--encre);
+}
+
+.onglet {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px;
+  font: 500 0.95rem var(--police-texte);
+  color: var(--encre-douce);
+  background: var(--papier);
+  border: none;
+  border-right: 2px solid var(--encre);
+  cursor: pointer;
+}
+
+.onglet:last-child { border-right: none; }
+.onglet:hover { background: #dde6f6; }
+
+/* Onglet ouvert : fond blanc et barre jaune en haut */
+.onglet.actif {
+  color: var(--encre);
+  font-weight: 700;
+  background: var(--feuille);
+  box-shadow: inset 0 4px 0 var(--signal);
+}
+
+/* Petit compteur de variables dans l'onglet */
+.compte {
+  min-width: 22px;
+  padding: 1px 6px;
+  font-size: 0.8rem;
+  text-align: center;
+  color: #fff;
+  background: var(--encre-douce);
+  border-radius: 10px;
+}
+
+.onglet.actif .compte { background: var(--encre); }
+
 /* ---------- Boutons ---------- */
 .bouton {
   font: 500 0.95rem var(--police-texte);
@@ -164,7 +206,8 @@ h2, h3 {
 /* Contour bien visible quand on navigue au clavier (accessibilité) */
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
+select:focus-visible,
+summary:focus-visible {
   outline: 3px solid var(--signal);
   outline-offset: 2px;
 }
@@ -199,6 +242,20 @@ select {
 .formulaire h3 { font-size: 1rem; margin-bottom: 12px; }
 
 .deux-colonnes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Case à cocher alignée avec son texte */
+.case { display: flex; align-items: center; gap: 8px; margin-top: 22px; }
+.case input { width: auto; margin: 0; }
+
+/* Bloc "Réglages Modbus" replié */
+.avance { margin-bottom: 12px; }
+.avance summary {
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--bleu);
+  cursor: pointer;
+}
 
 .actions { display: flex; gap: 10px; }
 
@@ -235,9 +292,25 @@ select {
   cursor: pointer;
 }
 
-.ligne-nom { display: block; font-weight: 500; font-size: 1.05rem; }
+.ligne-nom { display: flex; align-items: center; font-weight: 500; font-size: 1.05rem; }
 .ligne-detail { display: block; margin-top: 2px; font-size: 0.85rem; color: var(--encre-douce); }
+.ligne-etat { display: block; margin-top: 2px; font-size: 0.85rem; font-weight: 500; }
+.ligne-etat.muet { color: var(--alerte); }
+.ligne-etat.attente { color: var(--encre-douce); }
 .ligne-actions { display: flex; gap: 16px; margin-top: 6px; }
+
+/* Pastille d'état devant le nom : verte = ok, rouge = muet, grise = en attente */
+.pastille {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 50%;
+}
+
+.pastille.ok { background: var(--ok); }
+.pastille.muet { background: var(--alerte); }
+.pastille.attente { background: var(--neutre); }
 
 .vide { margin: 0; padding: 18px; color: var(--encre-douce); font-size: 0.95rem; }
 
@@ -254,9 +327,22 @@ select {
 
 .detail { margin: 4px 0 0; font-size: 0.9rem; color: var(--encre-douce); }
 
+/* Ligne d'alerte sous le titre (automate muet / en attente) */
+.etat-ligne { margin: 6px 0 0; font-size: 0.9rem; font-weight: 500; }
+.etat-ligne.muet { color: var(--alerte); }
+.etat-ligne.attente { color: var(--encre-douce); }
+
+/* Bloc "grosse valeur + unité" */
+.valeur-bloc {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+}
+
 /* La valeur actuelle : très grande, soulignée au "surligneur" jaune */
 .valeur {
-  margin: 0;
+  display: inline-block;
   font-family: var(--police-titre);
   font-weight: 800;
   font-size: clamp(3rem, 8vw, 5.5rem);
@@ -265,6 +351,41 @@ select {
   box-shadow: inset 0 -0.2em 0 var(--signal);
   padding: 0 6px;
 }
+
+/* Valeur périmée (automate muet) : grisée */
+.valeur.perimee { opacity: 0.35; }
+
+.unite {
+  font-family: var(--police-titre);
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: var(--encre-douce);
+}
+
+/* ---------- Choix de la période du graphique ---------- */
+.barre-periode {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.barre-periode .detail { margin: 0; }
+
+.periodes { display: flex; gap: 6px; }
+
+.periode {
+  padding: 4px 12px;
+  font: 500 0.9rem var(--police-texte);
+  color: var(--encre);
+  background: #fff;
+  border: 1.5px solid var(--encre);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.periode:hover { background: var(--papier); }
+.periode.actif { color: #fff; background: var(--encre); }
 
 /* ---------- Graphique : posé sur du papier millimétré ---------- */
 .graphique {
@@ -303,6 +424,24 @@ select {
   .releve { flex-direction: column; align-items: flex-start; }
 }
 
-/* Case à cocher alignée avec son texte */
-.case { display: flex; align-items: center; gap: 8px; margin-top: 22px; }
-.case input { width: auto; margin: 0; }
+/* ---------- Animations discrètes ---------- */
+/* 1. La pastille "Backend connecté" émet une onde, comme un voyant qui bat. */
+@keyframes onde {
+  0%   { box-shadow: 0 0 0 0 rgba(74, 222, 154, 0.7); }
+  70%  { box-shadow: 0 0 0 9px rgba(74, 222, 154, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 222, 154, 0); }
+}
+.statut.ok::before { animation: onde 2s ease-out infinite; }
+
+/* 2. La grosse valeur s'illumine en jaune quand une nouvelle mesure arrive. */
+@keyframes maj {
+  from { background-color: rgba(245, 184, 0, 0.55); }
+  to   { background-color: transparent; }
+}
+.valeur.maj { animation: maj 0.9s ease-out; }
+
+/* Respecte le réglage "réduire les animations" du système */
+@media (prefers-reduced-motion: reduce) {
+  .statut.ok::before,
+  .valeur.maj { animation: none; }
+}
