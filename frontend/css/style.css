@@ -1,0 +1,304 @@
+/* =====================================================================
+   STYLE DE LA PAGE DE SUPERVISION
+   Idée : un cahier de laboratoire. Fond en papier millimétré, encre
+   marine, et un trait jaune "sécurité" comme on en voit en atelier.
+   Pour changer les couleurs de l'école, modifie seulement les
+   variables juste en dessous (--encre, --bleu, --signal).
+   ===================================================================== */
+
+:root {
+  /* --- Couleurs --- */
+  --encre: #14275a;          /* bleu marine : textes, bandeau, bordures */
+  --encre-douce: #4a5b86;    /* bleu-gris : textes secondaires */
+  --papier: #f4f7fc;         /* fond de la page */
+  --quadrillage: #d6dfef;    /* lignes du papier millimétré */
+  --feuille: #ffffff;        /* fond des cadres */
+  --bleu: #2457c5;           /* courbe du graphique */
+  --signal: #f5b800;         /* jaune sécurité : repères importants */
+  --signal-pale: #fff6d6;    /* jaune très clair : ligne sélectionnée */
+  --ok: #1f8a5b;            /* vert : backend connecté */
+  --alerte: #b3261e;         /* rouge : erreurs */
+
+  /* --- Polices (avec une police de secours si pas d'internet) --- */
+  --police-titre: 'Bricolage Grotesque', system-ui, sans-serif;
+  --police-texte: 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+/* Fait en sorte que la largeur d'un élément inclue ses bordures (plus simple à calculer) */
+* { box-sizing: border-box; }
+
+/* Un élément avec l'attribut "hidden" doit vraiment disparaître */
+[hidden] { display: none !important; }
+
+/* ---------- Page entière : papier millimétré en fond ---------- */
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--police-texte);
+  color: var(--encre);
+  background-color: var(--papier);
+  /* Deux dégradés (horizontal + vertical) forment le quadrillage de 24 px */
+  background-image:
+    linear-gradient(var(--quadrillage) 1px, transparent 1px),
+    linear-gradient(90deg, var(--quadrillage) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+h2, h3 {
+  margin: 0;
+  font-family: var(--police-titre);
+  font-weight: 800;
+}
+
+/* ---------- Bandeau du haut ---------- */
+.bandeau {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 28px;
+  background: var(--encre);
+  color: #fff;
+  border-bottom: 6px solid var(--signal); /* le trait jaune "sécurité" */
+}
+
+.marque { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+
+.marque-titre {
+  font-family: var(--police-titre);
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
+.marque-ecole { color: #c9d4ef; font-size: 0.95rem; }
+
+/* Pastille d'état du backend */
+.statut {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #c9d4ef;
+}
+
+.statut::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #8a97bb; /* gris : état inconnu */
+}
+
+.statut.ok::before { background: #4ade9a; }      /* vert : ça répond */
+.statut.erreur::before { background: #ff6b6b; }  /* rouge : ça ne répond pas */
+
+/* ---------- Mise en page : 2 colonnes ---------- */
+.page {
+  display: grid;
+  grid-template-columns: 350px 1fr; /* colonne fixe à gauche, le reste à droite */
+  gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 28px 48px;
+  align-items: start;
+}
+
+/* Sur petit écran : les deux blocs s'empilent */
+@media (max-width: 900px) {
+  .page { grid-template-columns: 1fr; padding: 16px; }
+  .bandeau { padding: 14px 16px; }
+}
+
+/* ---------- Les deux grands cadres blancs ---------- */
+.feuille,
+.paillasse {
+  background: var(--feuille);
+  border: 2px solid var(--encre);
+  border-radius: 3px;
+}
+
+.feuille { padding: 0; }
+.paillasse { padding: 24px; }
+
+.feuille-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 2px solid var(--encre);
+}
+
+.feuille-entete h2 { font-size: 1.15rem; }
+
+/* ---------- Boutons ---------- */
+.bouton {
+  font: 500 0.95rem var(--police-texte);
+  color: var(--encre);
+  background: var(--feuille);
+  border: 2px solid var(--encre);
+  border-radius: 3px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.bouton:hover { background: var(--papier); }
+.bouton-principal { background: var(--encre); color: #fff; }
+.bouton-principal:hover { background: #1d3677; }
+.bouton-signal { background: var(--signal); }
+.bouton-signal:hover { background: #ffc928; }
+
+/* Bouton qui ressemble à un lien (Modifier / Supprimer) */
+.lien {
+  font: 500 0.85rem var(--police-texte);
+  color: var(--bleu);
+  background: none;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.lien-danger { color: var(--alerte); }
+
+/* Contour bien visible quand on navigue au clavier (accessibilité) */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+}
+
+/* ---------- Formulaires ---------- */
+label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+input,
+select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  font: 400 1rem var(--police-texte);
+  color: var(--encre);
+  background: #fff;
+  border: 1.5px solid var(--encre-douce);
+  border-radius: 3px;
+}
+
+.formulaire {
+  padding: 16px 18px;
+  background: var(--papier);
+  border-bottom: 2px solid var(--encre);
+}
+
+.formulaire h3 { font-size: 1rem; margin-bottom: 12px; }
+
+.deux-colonnes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.actions { display: flex; gap: 10px; }
+
+.erreur { min-height: 1.2em; margin: 0 0 8px; color: var(--alerte); font-size: 0.9rem; }
+
+/* ---------- Liste des variables ---------- */
+.liste { list-style: none; margin: 0; padding: 0; }
+
+.ligne {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 18px;
+  border-top: 1px solid var(--quadrillage);
+}
+
+.ligne:first-child { border-top: none; }
+
+/* Ligne sélectionnée : fond jaune pâle + barre jaune à gauche */
+.ligne.choisie {
+  background: var(--signal-pale);
+  box-shadow: inset 6px 0 0 var(--signal);
+}
+
+/* La zone cliquable pour choisir la variable (nom + détail) */
+.ligne-choix {
+  display: block;
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.ligne-nom { display: block; font-weight: 500; font-size: 1.05rem; }
+.ligne-detail { display: block; margin-top: 2px; font-size: 0.85rem; color: var(--encre-douce); }
+.ligne-actions { display: flex; gap: 16px; margin-top: 6px; }
+
+.vide { margin: 0; padding: 18px; color: var(--encre-douce); font-size: 0.95rem; }
+
+/* ---------- Relevé : nom + grosse valeur ---------- */
+.releve {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.releve h2 { font-size: 1.5rem; }
+
+.detail { margin: 4px 0 0; font-size: 0.9rem; color: var(--encre-douce); }
+
+/* La valeur actuelle : très grande, soulignée au "surligneur" jaune */
+.valeur {
+  margin: 0;
+  font-family: var(--police-titre);
+  font-weight: 800;
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums; /* les chiffres gardent la même largeur */
+  box-shadow: inset 0 -0.2em 0 var(--signal);
+  padding: 0 6px;
+}
+
+/* ---------- Graphique : posé sur du papier millimétré ---------- */
+.graphique {
+  position: relative;
+  height: 320px;
+  padding: 10px;
+  border: 1.5px solid var(--encre);
+  border-radius: 3px;
+  background-color: #fbfcff;
+  background-image:
+    linear-gradient(var(--quadrillage) 1px, transparent 1px),
+    linear-gradient(90deg, var(--quadrillage) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ---------- Export CSV ---------- */
+.export {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 2px solid var(--encre);
+}
+
+.export h3 { font-size: 1.05rem; margin-bottom: 12px; }
+
+.export-champs {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.export-champs label { margin-bottom: 0; }
+
+@media (max-width: 700px) {
+  .export-champs { grid-template-columns: 1fr 1fr; }
+  .releve { flex-direction: column; align-items: flex-start; }
+}
