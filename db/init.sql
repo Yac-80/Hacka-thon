@@ -4,10 +4,12 @@ CREATE TABLE variables (
   plc_ip VARCHAR(45) NOT NULL,
   register_address INT NOT NULL,
   frequency_seconds INT NOT NULL,
-  unit_id INT NOT NULL DEFAULT 1,              -- identifiant Modbus (255 pour le serveur intégré d'un M580)
-  register_type VARCHAR(20) NOT NULL DEFAULT 'holding', -- holding | input | coil | discrete
-  data_type VARCHAR(10) NOT NULL DEFAULT 'uint16',      -- uint16 | int16 | float32
-  swap_words TINYINT(1) NOT NULL DEFAULT 0     -- 1 = inverser les 2 mots d'un réel
+  unit_id INT NOT NULL DEFAULT 1,
+  register_type VARCHAR(20) NOT NULL DEFAULT 'holding',
+  data_type VARCHAR(10) NOT NULL DEFAULT 'uint16',
+  swap_words TINYINT(1) NOT NULL DEFAULT 0,
+  divisor DOUBLE NOT NULL DEFAULT 1,           -- les valeurs lues sont divisées par ce nombre
+  measure_unit VARCHAR(20) NOT NULL DEFAULT '' -- unité affichée (°C, %, m/min...)
 );
 
 CREATE TABLE measure (
@@ -17,3 +19,5 @@ CREATE TABLE measure (
   recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (variable_id) REFERENCES variables(id) ON DELETE CASCADE
 );
+
+CREATE INDEX idx_measure_var_date ON measure (variable_id, recorded_at);

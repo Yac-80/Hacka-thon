@@ -34,6 +34,17 @@
         <button type="button" class="bouton bouton-signal" id="btn-nouvelle">Ajouter</button>
       </div>
 
+      <!-- Les deux onglets : automates réels / simulation.
+           Le tri se fait selon l'IP : 127.x.x.x ou localhost = simulation. -->
+      <div class="onglets" role="tablist" aria-label="Source des variables">
+        <button type="button" class="onglet actif" id="onglet-reel" role="tab" aria-selected="true">
+          Automate réel <span class="compte" id="compte-reel">0</span>
+        </button>
+        <button type="button" class="onglet" id="onglet-simulation" role="tab" aria-selected="false">
+          Simulation <span class="compte" id="compte-simulation">0</span>
+        </button>
+      </div>
+
       <!-- Formulaire d'ajout / de modification : caché tant qu'on ne clique pas sur "Ajouter" ou "Modifier" -->
       <form id="formulaire" class="formulaire" hidden>
         <h3 id="formulaire-titre">Nouvelle variable</h3>
@@ -45,7 +56,7 @@
           <input id="champ-nom" required placeholder="Température four">
         </label>
         <label>Adresse IP de l'automate
-          <input id="champ-ip" required placeholder="127.0.0.1">
+          <input id="champ-ip" required placeholder="192.168.1.10">
         </label>
         <div class="deux-colonnes">
           <label>Registre à lire
@@ -56,30 +67,43 @@
           </label>
         </div>
         <div class="deux-colonnes">
-          <label>Type d'objet Modbus
-            <select id="champ-type">
-              <option value="holding">Registre de maintien (%MW)</option>
-              <option value="input">Registre d'entrée (%IW)</option>
-              <option value="coil">Bit / bobine (%M)</option>
-              <option value="discrete">Entrée discrète (%I)</option>
-            </select>
+          <label>Diviseur
+            <input id="champ-diviseur" type="number" min="0.001" step="any" value="1" required>
           </label>
-          <label>Format de la valeur
-            <select id="champ-format">
-              <option value="uint16">Entier 16 bits</option>
-              <option value="int16">Entier signé 16 bits</option>
-              <option value="float32">Réel 32 bits (%MF)</option>
-            </select>
+          <label>Unité affichée
+            <input id="champ-unite" maxlength="20" placeholder="°C">
           </label>
         </div>
-        <div class="deux-colonnes">
-          <label>Unit ID
-            <input id="champ-unit" type="number" min="0" max="255" value="1" required>
-          </label>
-          <label class="case">
-            <input type="checkbox" id="champ-swap"> Inverser les 2 mots (réel)
-          </label>
-        </div>
+
+        <!-- Réglages techniques Modbus : repliés par défaut, on les ouvre si besoin -->
+        <details class="avance" id="formulaire-avance">
+          <summary>Réglages Modbus</summary>
+          <div class="deux-colonnes">
+            <label>Type d'objet Modbus
+              <select id="champ-type">
+                <option value="holding">Registre de maintien (%MW)</option>
+                <option value="input">Registre d'entrée (%IW)</option>
+                <option value="coil">Bit / bobine (%M)</option>
+                <option value="discrete">Entrée discrète (%I)</option>
+              </select>
+            </label>
+            <label>Format de la valeur
+              <select id="champ-format">
+                <option value="uint16">Entier 16 bits</option>
+                <option value="int16">Entier signé 16 bits</option>
+                <option value="float32">Réel 32 bits (%MF)</option>
+              </select>
+            </label>
+          </div>
+          <div class="deux-colonnes">
+            <label>Unit ID
+              <input id="champ-unit" type="number" min="0" max="255" value="1" required>
+            </label>
+            <label class="case">
+              <input type="checkbox" id="champ-swap"> Inverser les 2 mots (réel)
+            </label>
+          </div>
+        </details>
 
         <!-- Message d'erreur éventuel (rempli par app.js) -->
         <p class="erreur" id="formulaire-erreur" role="alert"></p>
@@ -103,8 +127,23 @@
         <div>
           <h2 id="releve-nom">Aucune variable sélectionnée</h2>
           <p class="detail" id="releve-detail"></p>
+          <!-- Affichée seulement si l'automate est muet ou n'a encore rien envoyé -->
+          <p class="etat-ligne" id="releve-etat" hidden></p>
         </div>
-        <p class="valeur" id="releve-valeur" aria-live="polite">-</p>
+        <p class="valeur-bloc" aria-live="polite">
+          <span class="valeur" id="releve-valeur">-</span>
+          <span class="unite" id="releve-unite"></span>
+        </p>
+      </div>
+
+      <!-- Choix de la période affichée sur le graphique -->
+      <div class="barre-periode">
+        <span class="detail">Période affichée</span>
+        <div class="periodes" role="group" aria-label="Période affichée">
+          <button type="button" class="periode actif" data-secondes="300">5 min</button>
+          <button type="button" class="periode" data-secondes="1800">30 min</button>
+          <button type="button" class="periode" data-secondes="7200">2 h</button>
+        </div>
       </div>
 
       <!-- Le graphique Chart.js sera dessiné dans ce canvas -->
